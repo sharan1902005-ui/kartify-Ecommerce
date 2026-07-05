@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import com.ecommerce.ecommerce.dto.CartItemResponse;
 import com.ecommerce.ecommerce.model.Cart;
 import com.ecommerce.ecommerce.model.Product;
 import com.ecommerce.ecommerce.repository.CartRepository;
@@ -54,8 +55,16 @@ public class CartController {
 
     // GET USER CART
     @GetMapping("/user/{userId}")
-    public List<Cart> getCartByUser(@PathVariable Long userId) {
-        return cartRepository.findByUserId(userId);
+    public List<CartItemResponse> getCartByUser(@PathVariable Long userId) {
+        List<Cart> cartItems = cartRepository.findByUserId(userId);
+        List<CartItemResponse> response = new java.util.ArrayList<>();
+        for (Cart cart : cartItems) {
+            Optional<Product> product = productRepository.findById(cart.getProductId());
+            if (product.isPresent()) {
+                response.add(new CartItemResponse(cart.getId(), cart.getQuantity(), product.get()));
+            }
+        }
+        return response;
     }
 
     // UPDATE QUANTITY
