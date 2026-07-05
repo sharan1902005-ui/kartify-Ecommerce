@@ -34,66 +34,33 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String requestPath = request.getServletPath();
-
-        // PUBLIC ENDPOINTS (NO JWT REQUIRED)
-        if (
-                requestPath.startsWith("/api/auth") ||
-                requestPath.startsWith("/api/products") ||
-                requestPath.startsWith("/api/reviews") ||
-                requestPath.startsWith("/api/wishlist") ||
-                requestPath.startsWith("/api/coupons") ||
-                requestPath.startsWith("/api/cart") ||
-                requestPath.startsWith("/api/orders") ||
-                requestPath.startsWith("/api/address") ||
-                requestPath.startsWith("/api/payments") ||
-                requestPath.startsWith("/api/users")
-        ) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         final String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        // Always try to authenticate if a Bearer token is present
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            try {
+                String jwt = authHeader.substring(7);
+                String email = jwtService.extractEmail(jwt);
 
-        try {
-            String jwt = authHeader.substring(7);
-            String email = jwtService.extractEmail(jwt);
+                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-            if (
-                    email != null &&
-                    SecurityContextHolder.getContext().getAuthentication() == null
-            ) {
-                UserDetails userDetails =
-                        userDetailsService.loadUserByUsername(email);
-
-                if (jwtService.validateToken(jwt, userDetails.getUsername())) {
-
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
-
-                    authToken.setDetails(
-                            new WebAuthenticationDetailsSource()
-                                    .buildDetails(request)
-                    );
-
-                    SecurityContextHolder.getContext()
-                            .setAuthentication(authToken);
+                    if (jwtService.validateToken(jwt, userDetails.getUsername())) {
+                        UsernamePasswordAuthenticationToken authToken =
+                                new UsernamePasswordAuthenticationToken(
+                                        userDetails, null, userDetails.getAuthorities()
+                                );
+                        authToken.setDetails(
+                                new WebAuthenticationDetailsSource().buildDetails(request)
+                        );
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    }
                 }
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Invalid or Expired JWT Token");
+                return;
             }
-
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid or Expired JWT Token");
-            return;
         }
 
         filterChain.doFilter(request, response);

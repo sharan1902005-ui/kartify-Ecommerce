@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Zap, Mail, Lock, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Zap, Mail, Lock, ArrowRight, ShieldCheck, Truck, Star } from "lucide-react";
 import api from "../services/api";
 import { toast } from "../components/Toast";
 
@@ -13,6 +13,12 @@ function decodeUserIdFromToken(token) {
   }
 }
 
+const perks = [
+  { icon: ShieldCheck, text: "Secure & encrypted" },
+  { icon: Truck,       text: "Free delivery ₹499+" },
+  { icon: Star,        text: "4.9★ rated platform" },
+];
+
 export default function Login() {
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
@@ -24,13 +30,11 @@ export default function Login() {
       setLoading(true);
       const response = await api.post("/auth/login", { email, password });
       localStorage.setItem("token", response.data.token);
-
       const userId =
         response.data.userId ??
         response.data.id ??
         decodeUserIdFromToken(response.data.token);
       if (userId != null) localStorage.setItem("userId", String(userId));
-
       toast.login("Login successful! Welcome back 👋");
       setTimeout(() => { window.location.href = "/products"; }, 700);
     } catch (error) {
@@ -44,105 +48,148 @@ export default function Login() {
   const handleKeyDown = (e) => { if (e.key === "Enter") handleLogin(); };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F0FDFA] via-[#F8FAFC] to-[#EFF6FF] flex items-center justify-center px-4">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-teal-100/50 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-cyan-100/50 blur-3xl" />
-      </div>
+    <div className="min-h-screen flex">
+      {/* Left panel — branding */}
+      <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col justify-between p-12"
+        style={{ background: "linear-gradient(145deg, #0A3D38 0%, #0F766E 60%, #14B8A6 100%)" }}>
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-[0.07] pointer-events-none"
+          style={{ background: "radial-gradient(circle, white 0%, transparent 70%)", transform: "translate(30%, -30%)" }} />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-[0.06] pointer-events-none"
+          style={{ background: "radial-gradient(circle, white 0%, transparent 70%)", transform: "translate(-30%, 30%)" }} />
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
 
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="relative w-full max-w-md"
-      >
-        {/* Card */}
-        <div className="bg-white rounded-3xl shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
-          {/* Top accent */}
-          <div className="h-1.5 bg-gradient-to-r from-[#0F766E] via-[#14B8A6] to-[#06B6D4]" />
+        {/* Logo */}
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)" }}>
+            <Zap size={20} color="white" fill="white" />
+          </div>
+          <span className="text-white font-black text-2xl tracking-tight">Kartify</span>
+        </div>
 
-          <div className="px-8 py-10">
-            {/* Logo */}
-            <div className="flex items-center gap-2.5 mb-8">
-              <div className="w-10 h-10 rounded-xl bg-[#0F766E] flex items-center justify-center shadow-lg shadow-teal-200">
-                <Zap size={20} className="text-white" fill="white" />
-              </div>
-              <span className="text-2xl font-black text-[#0F766E] tracking-tight">Kartify</span>
-            </div>
-
-            <h1 className="text-2xl font-black text-slate-900 mb-1">Welcome back</h1>
-            <p className="text-sm text-slate-500 mb-8">Sign in to your account to continue shopping.</p>
-
-            {/* Fields */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Email</label>
-                <div className="relative">
-                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="you@example.com"
-                    className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-[#0F766E] focus:bg-white focus:ring-2 focus:ring-teal-100 transition-all"
-                  />
+        {/* Center content */}
+        <div className="relative z-10">
+          <motion.div
+            animate={{ y: [0, -12, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="w-24 h-24 rounded-3xl flex items-center justify-center mb-8"
+            style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.25)" }}
+          >
+            <Zap size={44} color="white" fill="white" />
+          </motion.div>
+          <h2 className="text-4xl font-black text-white mb-4 leading-tight">
+            Shop Smarter.<br />Live Better.
+          </h2>
+          <p className="text-white/65 text-lg leading-relaxed mb-10 max-w-sm">
+            Sign in to access your cart, orders, and exclusive deals curated just for you.
+          </p>
+          <div className="space-y-3">
+            {perks.map(({ icon: Icon, text }) => (
+              <div key={text} className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: "rgba(255,255,255,0.15)" }}>
+                  <Icon size={15} color="white" />
                 </div>
+                <span className="text-white/80 text-sm font-medium">{text}</span>
               </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Password</label>
-                <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type={showPw ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="••••••••"
-                    className="w-full h-11 pl-10 pr-10 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-[#0F766E] focus:bg-white focus:ring-2 focus:ring-teal-100 transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPw((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                  >
-                    {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Submit */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={handleLogin}
-              disabled={loading}
-              className="mt-6 w-full h-12 bg-[#0F766E] hover:bg-[#0D6B63] disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors shadow-lg shadow-teal-200/50 flex items-center justify-center gap-2 text-sm"
-            >
-              {loading ? (
-                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>Sign In <ArrowRight size={16} /></>
-              )}
-            </motion.button>
-
-            {/* Register link */}
-            <p className="mt-6 text-center text-sm text-slate-500">
-              Don't have an account?{" "}
-              <a href="/register" className="font-bold text-[#0F766E] hover:underline">
-                Create one
-              </a>
-            </p>
+            ))}
           </div>
         </div>
 
-        {/* Demo hint */}
-        <p className="mt-4 text-center text-xs text-slate-400">
-          Demo project · No real transactions
-        </p>
-      </motion.div>
+        {/* Bottom */}
+        <p className="relative z-10 text-white/35 text-xs">© {new Date().getFullYear()} Kartify Commerce</p>
+      </div>
+
+      {/* Right panel — form */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-slate-50">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none lg:hidden">
+          <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-teal-100/40 blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-cyan-100/40 blur-3xl" />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="relative w-full max-w-md"
+        >
+          {/* Mobile logo */}
+          <div className="flex items-center gap-2.5 mb-8 lg:hidden">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #0F766E, #14B8A6)" }}>
+              <Zap size={18} color="white" fill="white" />
+            </div>
+            <span className="text-xl font-black tracking-tight"
+              style={{ background: "linear-gradient(135deg, #0F766E, #0D9488)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Kartify
+            </span>
+          </div>
+
+          <div className="bg-white rounded-3xl overflow-hidden"
+            style={{ boxShadow: "0 8px 48px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.05)" }}>
+            {/* Top accent */}
+            <div className="h-1 bg-gradient-to-r from-[#0F766E] via-[#14B8A6] to-[#06B6D4]" />
+
+            <div className="px-8 py-10">
+              <h1 className="text-2xl font-black text-slate-900 mb-1">Welcome back</h1>
+              <p className="text-sm text-slate-500 mb-8">Sign in to your account to continue shopping.</p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-widest">Email</label>
+                  <div className="relative">
+                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                      onKeyDown={handleKeyDown} placeholder="you@example.com"
+                      className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-[#0F766E] focus:bg-white focus:ring-2 focus:ring-teal-100 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-widest">Password</label>
+                  <div className="relative">
+                    <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type={showPw ? "text" : "password"} value={password}
+                      onChange={(e) => setPassword(e.target.value)} onKeyDown={handleKeyDown}
+                      placeholder="••••••••"
+                      className="w-full h-11 pl-10 pr-10 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-[#0F766E] focus:bg-white focus:ring-2 focus:ring-teal-100 transition-all"
+                    />
+                    <button type="button" onClick={() => setShowPw((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                      {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02, boxShadow: "0 8px 24px rgba(15,118,110,0.35)" }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleLogin} disabled={loading}
+                className="mt-6 w-full h-12 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #0F766E, #14B8A6)", boxShadow: "0 4px 16px rgba(15,118,110,0.25)" }}
+              >
+                {loading
+                  ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  : <>Sign In <ArrowRight size={16} /></>
+                }
+              </motion.button>
+
+              <p className="mt-6 text-center text-sm text-slate-500">
+                Don't have an account?{" "}
+                <a href="/register" className="font-bold text-[#0F766E] hover:underline">Create one</a>
+              </p>
+            </div>
+          </div>
+
+          <p className="mt-4 text-center text-xs text-slate-400">Demo project · No real transactions</p>
+        </motion.div>
+      </div>
     </div>
   );
 }

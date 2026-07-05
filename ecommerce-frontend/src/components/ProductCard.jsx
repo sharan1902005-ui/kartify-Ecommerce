@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, memo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ShoppingCart, Star, Eye, X, Zap, CheckCircle2, AlertCircle } from "lucide-react";
+import { Heart, ShoppingCart, Star, Eye, X, Zap, CheckCircle2, AlertCircle, Package } from "lucide-react";
+import api from "../services/api";
+import { toast } from "./Toast";
 
 const BRANDS = ["Samsung", "Apple", "Sony", "LG", "Philips", "Bosch", "Nike", "Adidas", "Penguin", "Prestige"];
 
@@ -23,13 +25,45 @@ function getFakeBrand(product) {
   return BRANDS[seed % BRANDS.length];
 }
 
+const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='48' fill='%23cbd5e1'%3E📦%3C/text%3E%3C/svg%3E";
+
+function StarRating({ rating, size = 11 }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star key={i} size={size}
+          className={i < Math.floor(rating) ? "text-amber-400" : i < rating ? "text-amber-300" : "text-slate-200"}
+          fill="currentColor" />
+      ))}
+    </div>
+  );
+}
+
+function StockBadge({ stock }) {
+  if (stock <= 0) return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
+      <AlertCircle size={9} /> Out of Stock
+    </span>
+  );
+  if (stock <= 5) return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">
+      <AlertCircle size={9} /> Only {stock} left
+    </span>
+  );
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+      <CheckCircle2 size={9} /> In Stock
+    </span>
+  );
+}
+
 function QuickViewModal({ product, onClose, onAddToCart }) {
-  const rating       = getFakeRating(product);
-  const currentPrice = Number(product.price);
+  const rating        = getFakeRating(product);
+  const currentPrice  = Number(product.price);
   const originalPrice = getFakeOriginalPrice(currentPrice);
-  const discount     = getDiscount(originalPrice, currentPrice);
-  const stock        = Number(product.stock ?? 10);
-  const brand        = getFakeBrand(product);
+  const discount      = getDiscount(originalPrice, currentPrice);
+  const stock         = Number(product.stock ?? 10);
+  const brand         = getFakeBrand(product);
   const [adding, setAdding] = useState(false);
 
   const handleAdd = async () => {
@@ -41,86 +75,80 @@ function QuickViewModal({ product, onClose, onAddToCart }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.92, y: 20 }}
+        initial={{ opacity: 0, scale: 0.9, y: 24 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.92, y: 20 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        exit={{ opacity: 0, scale: 0.9, y: 24 }}
+        transition={{ type: "spring", stiffness: 320, damping: 28 }}
         className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="grid sm:grid-cols-2">
           {/* Image */}
-          <div className="relative bg-gradient-to-br from-slate-50 to-teal-50/30 flex items-center justify-center p-10 min-h-64">
+          <div className="relative flex items-center justify-center p-10 min-h-72"
+            style={{ background: "linear-gradient(135deg, #F8FAFC 0%, #F0FDF4 100%)" }}>
             {discount > 0 && (
-              <div className="absolute top-4 left-4 bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-lg">
-                {discount}% OFF
+              <div className="absolute top-4 left-4 flex items-center gap-1 bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-xl shadow-lg">
+                <Zap size={10} fill="white" /> {discount}% OFF
               </div>
             )}
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              className="max-h-52 w-full object-contain"
-              onError={(e) => {
-                e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Crect width='160' height='160' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='40' fill='%23cbd5e1'%3E📦%3C/text%3E%3C/svg%3E";
-              }}
-            />
+            <img src={product.imageUrl} alt={product.name}
+              className="max-h-52 w-full object-contain drop-shadow-lg"
+              onError={(e) => { e.currentTarget.src = PLACEHOLDER; }} />
           </div>
 
           {/* Details */}
           <div className="p-7 flex flex-col">
-            <button onClick={onClose} className="self-end w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors mb-4">
-              <X size={15} />
-            </button>
+            <div className="flex items-start justify-between mb-4">
+              <span className="inline-flex items-center gap-1 bg-teal-50 text-[#0F766E] text-[11px] font-bold px-2.5 py-1 rounded-full">
+                <Zap size={9} fill="currentColor" />
+                {product.category?.split(/[>|]/)[0]?.trim() || "General"}
+              </span>
+              <button onClick={onClose}
+                className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors">
+                <X size={14} />
+              </button>
+            </div>
 
-            <span className="inline-flex items-center gap-1 bg-teal-50 text-[#0F766E] text-[11px] font-bold px-2.5 py-1 rounded-full mb-2 self-start">
-              <Zap size={10} fill="currentColor" />
-              {product.category?.split(/[>|]/)[0]?.trim() || "General"}
-            </span>
+            <h2 className="font-black text-slate-900 text-xl leading-snug mb-1">{product.name}</h2>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{brand}</p>
 
-            <h2 className="font-black text-slate-900 text-lg leading-snug mb-1">{product.name}</h2>
-            <p className="text-xs font-semibold text-slate-400 mb-3">{brand}</p>
-
-            <div className="flex items-center gap-1.5 mb-4">
-              <div className="flex">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} size={13} className={i < Math.round(rating) ? "text-amber-400" : "text-slate-200"} fill="currentColor" />
-                ))}
-              </div>
-              <span className="text-xs font-semibold text-slate-500">{rating.toFixed(1)}</span>
-              <span className="text-xs text-slate-400">({Math.floor(rating * 120 + 40)})</span>
+            <div className="flex items-center gap-2 mb-4">
+              <StarRating rating={rating} size={13} />
+              <span className="text-xs font-bold text-slate-600">{rating.toFixed(1)}</span>
+              <span className="text-xs text-slate-400">({Math.floor(rating * 120 + 40)} reviews)</span>
             </div>
 
             <p className="text-sm text-slate-500 leading-relaxed mb-5 line-clamp-3">
-              {product.description || "Premium quality product available exclusively on Kartify."}
+              {product.description || "Premium quality product available exclusively on Kartify. Crafted for performance and built to last."}
             </p>
 
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-2xl font-black text-slate-900">₹{formatPrice(currentPrice)}</span>
+            <div className="flex items-baseline gap-2.5 mb-3">
+              <span className="text-3xl font-black text-slate-900">₹{formatPrice(currentPrice)}</span>
               <span className="text-sm text-slate-400 line-through">₹{formatPrice(originalPrice)}</span>
-              {discount > 0 && <span className="text-sm font-bold text-green-600">Save {discount}%</span>}
+              {discount > 0 && (
+                <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
+                  Save {discount}%
+                </span>
+              )}
             </div>
 
-            <p className={`text-xs font-semibold mb-5 flex items-center gap-1 ${stock <= 0 ? "text-red-500" : stock <= 5 ? "text-orange-500" : "text-green-600"}`}>
-              {stock <= 0 ? <><AlertCircle size={12} /> Out of Stock</> : stock <= 5 ? <><AlertCircle size={12} /> Only {stock} left!</> : <><CheckCircle2 size={12} /> In Stock</>}
-            </p>
+            <div className="mb-5"><StockBadge stock={stock} /></div>
 
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={handleAdd}
               disabled={adding || stock <= 0}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-white font-bold text-sm disabled:bg-slate-300 transition-colors"
-              style={{ background: "linear-gradient(135deg, #0F766E, #14B8A6)" }}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-white font-bold text-sm disabled:opacity-50 transition-all"
+              style={{ background: stock > 0 ? "linear-gradient(135deg, #0F766E, #14B8A6)" : "#CBD5E1", boxShadow: stock > 0 ? "0 8px 24px rgba(15,118,110,0.3)" : "none" }}
             >
               <ShoppingCart size={16} />
-              {adding ? "Adding…" : "Add to Cart"}
+              {adding ? "Adding to Cart…" : stock <= 0 ? "Out of Stock" : "Add to Cart"}
             </motion.button>
           </div>
         </div>
@@ -129,10 +157,14 @@ function QuickViewModal({ product, onClose, onAddToCart }) {
   );
 }
 
-export default function ProductCard({ product, onAddToCart, index = 0 }) {
-  const [wishlisted, setWishlisted] = useState(false);
+const ProductCard = memo(function ProductCard({ product, onAddToCart, index = 0, initialWishlisted = false }) {
+  const [wishlisted, setWishlisted] = useState(initialWishlisted);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   const [adding, setAdding]         = useState(false);
   const [quickView, setQuickView]   = useState(false);
+  const [imgLoaded, setImgLoaded]   = useState(false);
+
+  useEffect(() => { setWishlisted(initialWishlisted); }, [initialWishlisted]);
 
   const rating        = getFakeRating(product);
   const currentPrice  = Number(product.price);
@@ -147,112 +179,162 @@ export default function ProductCard({ product, onAddToCart, index = 0 }) {
     setAdding(false);
   };
 
+  const handleWishlist = async (e) => {
+    e.stopPropagation();
+    const token = localStorage.getItem("token");
+
+    // ── Guest: use localStorage ──────────────────────────────────────────
+    if (!token) {
+      const saved = JSON.parse(localStorage.getItem("guest_wishlist") || "[]");
+      if (wishlisted) {
+        const updated = saved.filter((id) => id !== product.id);
+        localStorage.setItem("guest_wishlist", JSON.stringify(updated));
+        setWishlisted(false);
+        toast.remove("Removed from wishlist");
+      } else {
+        saved.push(product.id);
+        localStorage.setItem("guest_wishlist", JSON.stringify(saved));
+        setWishlisted(true);
+        toast.success("Added to wishlist ❤️");
+      }
+      return;
+    }
+
+    // ── Logged in: use API ───────────────────────────────────────────────
+    setWishlistLoading(true);
+    try {
+      if (wishlisted) {
+        await api.delete(`/wishlist/${product.id}`);
+        setWishlisted(false);
+        toast.remove("Removed from wishlist");
+      } else {
+        await api.post(`/wishlist/${product.id}`);
+        setWishlisted(true);
+        toast.success("Added to wishlist ❤️");
+      }
+    } catch (err) {
+      console.error("Wishlist error:", err?.response?.status, err?.message);
+      toast.error("Something went wrong. Try again.");
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
   return (
     <>
       <motion.article
-        initial={{ opacity: 0, y: 24 }}
+        initial={{ opacity: 0, y: 28 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, delay: index * 0.05 }}
-        whileHover={{ y: -6, transition: { duration: 0.2 } }}
-        className="group flex flex-col bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/60 transition-shadow duration-300 overflow-hidden"
-        style={{ minHeight: "520px" }}
+        transition={{ duration: 0.4, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
+        whileHover={{ y: -8, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
+        className="group flex flex-col bg-white rounded-3xl overflow-hidden cursor-pointer"
+        style={{
+          minHeight: "480px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)",
+          border: "1px solid rgba(0,0,0,0.06)",
+          transition: "box-shadow 0.3s ease",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 20px 60px rgba(15,118,110,0.12), 0 4px 16px rgba(0,0,0,0.06)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)"; }}
       >
         {/* Image area */}
-        <div className="relative bg-gradient-to-br from-slate-50 to-teal-50/20 border-b border-slate-100">
-          {discount > 0 && (
-            <div className="absolute top-3 left-3 z-10 bg-red-500 text-white text-[11px] font-black px-2 py-1 rounded-lg">
-              {discount}% OFF
-            </div>
-          )}
+        <div className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #F8FAFC 0%, #F0FDF4 60%, #F8FAFC 100%)" }}>
+          {/* Badges */}
+          <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+            {discount > 0 && (
+              <span className="flex items-center gap-1 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-xl shadow-sm">
+                <Zap size={8} fill="white" /> {discount}% OFF
+              </span>
+            )}
+            {stock <= 5 && stock > 0 && (
+              <span className="bg-orange-500 text-white text-[10px] font-black px-2 py-1 rounded-xl shadow-sm">
+                Almost Gone
+              </span>
+            )}
+          </div>
 
           {/* Wishlist */}
           <motion.button
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setWishlisted((v) => !v)}
-            className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center"
+            whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.85 }}
+            onClick={handleWishlist}
+            disabled={wishlistLoading}
+            className="absolute top-3 right-3 z-10 w-9 h-9 rounded-2xl flex items-center justify-center transition-all duration-200 disabled:opacity-60"
+            style={{
+              background: wishlisted ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.9)",
+              backdropFilter: "blur(8px)",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+              border: wishlisted ? "1px solid rgba(239,68,68,0.2)" : "1px solid rgba(255,255,255,0.8)",
+            }}
           >
-            <Heart
-              size={14}
-              className={wishlisted ? "text-red-500" : "text-slate-400"}
-              fill={wishlisted ? "currentColor" : "none"}
-            />
+            <Heart size={14} className={wishlisted ? "text-red-500" : "text-slate-400"} fill={wishlisted ? "currentColor" : "none"} />
           </motion.button>
 
           {/* Image */}
-          <div className="h-56 flex items-center justify-center p-5 overflow-hidden">
+          <div className="h-56 flex items-center justify-center p-6 overflow-hidden">
+            {!imgLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Package size={40} className="text-slate-200 animate-pulse" />
+              </div>
+            )}
             <motion.img
               src={product.imageUrl}
               alt={product.name}
-              onError={(e) => {
-                e.currentTarget.src =
-                  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Crect width='160' height='160' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='40' fill='%23cbd5e1'%3E📦%3C/text%3E%3C/svg%3E";
-              }}
-              className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110"
+              onLoad={() => setImgLoaded(true)}
+              onError={(e) => { e.currentTarget.src = PLACEHOLDER; setImgLoaded(true); }}
+              className={`h-full w-full object-contain transition-all duration-500 group-hover:scale-110 drop-shadow-sm ${imgLoaded ? "opacity-100" : "opacity-0"}`}
               loading="lazy"
             />
           </div>
 
           {/* Quick View overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileHover={{ opacity: 1 }}
-            className="absolute inset-0 bg-black/10 flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          >
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
             <motion.button
+              initial={{ y: 8, opacity: 0 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => setQuickView(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/95 backdrop-blur-sm text-slate-800 text-xs font-bold shadow-lg"
+              onClick={(e) => { e.stopPropagation(); setQuickView(true); }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-slate-800 text-xs font-bold shadow-xl translate-y-2 group-hover:translate-y-0 transition-transform duration-300"
+              style={{ background: "rgba(255,255,255,0.95)", backdropFilter: "blur(12px)" }}
             >
-              <Eye size={13} /> Quick View
+              <Eye size={12} /> Quick View
             </motion.button>
-          </motion.div>
+          </div>
         </div>
 
         {/* Content */}
-        <div className="flex flex-col flex-1 p-4">
-          <span className="inline-flex self-start items-center gap-1 bg-teal-50 text-[#0F766E] text-[11px] font-semibold px-2.5 py-1 rounded-full mb-2">
-            <Zap size={10} fill="currentColor" />
+        <div className="flex flex-col flex-1 p-4 pt-3.5">
+          {/* Category */}
+          <span className="inline-flex self-start items-center gap-1 bg-teal-50 text-[#0F766E] text-[10px] font-bold px-2.5 py-1 rounded-full mb-2.5 uppercase tracking-wide">
             {product.category?.split(/[>|]/)[0]?.trim() || "General"}
           </span>
 
-          <h3 className="font-bold text-base text-slate-800 leading-snug line-clamp-2 mb-0.5">
+          {/* Name */}
+          <h3 className="font-bold text-[15px] text-slate-800 leading-snug line-clamp-2 mb-1 group-hover:text-[#0F766E] transition-colors duration-200">
             {product.name}
           </h3>
 
           {/* Brand */}
-          <p className="text-xs font-semibold text-slate-400 mb-2">{brand}</p>
+          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5">{brand}</p>
 
           {/* Rating */}
-          <div className="flex items-center gap-1.5 mb-2">
-            <div className="flex items-center gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} size={11} className={i < Math.round(rating) ? "text-amber-400" : "text-slate-200"} fill="currentColor" />
-              ))}
-            </div>
-            <span className="text-xs font-semibold text-slate-500">{rating.toFixed(1)}</span>
-            <span className="text-xs text-slate-400">({Math.floor(rating * 120 + 40)})</span>
+          <div className="flex items-center gap-1.5 mb-3">
+            <StarRating rating={rating} />
+            <span className="text-[11px] font-bold text-slate-600">{rating.toFixed(1)}</span>
+            <span className="text-[11px] text-slate-400">({Math.floor(rating * 120 + 40)})</span>
           </div>
 
           <div className="mt-auto">
             {/* Price */}
-            <div className="flex items-baseline gap-2 mb-1">
+            <div className="flex items-baseline gap-2 mb-2">
               <span className="text-xl font-black text-slate-900">₹{formatPrice(currentPrice)}</span>
-              <span className="text-sm text-slate-400 line-through font-medium">₹{formatPrice(originalPrice)}</span>
+              <span className="text-xs text-slate-400 line-through">₹{formatPrice(originalPrice)}</span>
+              {discount > 0 && (
+                <span className="text-[10px] font-bold text-emerald-600">-{discount}%</span>
+              )}
             </div>
 
             {/* Stock */}
-            <p className={`text-xs font-semibold mb-3 flex items-center gap-1 ${
-              stock <= 0 ? "text-red-500" : stock <= 5 ? "text-orange-500" : "text-green-600"
-            }`}>
-              {stock <= 0
-                ? <><AlertCircle size={11} /> Out of Stock</>
-                : stock <= 5
-                  ? <><AlertCircle size={11} /> Only {stock} left!</>
-                  : <><CheckCircle2 size={11} /> In Stock</>
-              }
-            </p>
+            <div className="mb-3"><StockBadge stock={stock} /></div>
 
             {/* Buttons */}
             <div className="flex gap-2">
@@ -260,8 +342,11 @@ export default function ProductCard({ product, onAddToCart, index = 0 }) {
                 whileTap={{ scale: 0.96 }}
                 onClick={handleAddToCart}
                 disabled={adding || stock <= 0}
-                className="flex-1 flex items-center justify-center gap-2 text-white text-sm font-bold py-2.5 rounded-xl transition-colors duration-200 shadow-sm hover:shadow-md disabled:bg-slate-300"
-                style={stock > 0 ? { background: "linear-gradient(135deg, #0F766E, #14B8A6)" } : {}}
+                className="flex-1 flex items-center justify-center gap-2 text-white text-sm font-bold py-2.5 rounded-2xl transition-all duration-200 disabled:opacity-50"
+                style={stock > 0 ? {
+                  background: "linear-gradient(135deg, #0F766E, #14B8A6)",
+                  boxShadow: "0 4px 14px rgba(15,118,110,0.25)",
+                } : { background: "#E2E8F0", color: "#94A3B8" }}
               >
                 <ShoppingCart size={14} />
                 {adding ? "Adding…" : "Add to Cart"}
@@ -269,25 +354,22 @@ export default function ProductCard({ product, onAddToCart, index = 0 }) {
               <motion.button
                 whileTap={{ scale: 0.96 }}
                 onClick={() => setQuickView(true)}
-                className="w-10 h-10 flex items-center justify-center rounded-xl border-2 border-slate-200 hover:border-[#0F766E] hover:text-[#0F766E] text-slate-400 transition-colors duration-200"
+                className="w-10 h-10 flex items-center justify-center rounded-2xl border border-slate-200 hover:border-[#0F766E]/40 hover:bg-teal-50 text-slate-400 hover:text-[#0F766E] transition-all duration-200"
               >
-                <Eye size={15} />
+                <Eye size={14} />
               </motion.button>
             </div>
           </div>
         </div>
       </motion.article>
 
-      {/* Quick View Modal */}
       <AnimatePresence>
         {quickView && (
-          <QuickViewModal
-            product={product}
-            onClose={() => setQuickView(false)}
-            onAddToCart={onAddToCart}
-          />
+          <QuickViewModal product={product} onClose={() => setQuickView(false)} onAddToCart={onAddToCart} />
         )}
       </AnimatePresence>
     </>
   );
-}
+});
+
+export default ProductCard;
