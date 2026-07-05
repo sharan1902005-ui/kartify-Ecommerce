@@ -20,8 +20,8 @@ const SORT_OPTIONS = [
 ];
 
 const STORE_CATEGORIES = [
-  "All Products", "Electronics", "Fashion", "Home & Kitchen",
-  "Beauty", "Books", "Sports", "Accessories", "Groceries",
+  "All Products", "Electronics", "Home & Kitchen",
+  "Books", "Sports", "Accessories",
 ];
 
 function getPrimaryCategory(category = "") {
@@ -34,17 +34,14 @@ function getPrimaryCategory(category = "") {
   const compact = firstPart.replace(/\s+/g, "");
 
   if (/book|notebook|journal|diary|pen|pencil|office|paper|calculator/.test(normalized)) return "Books";
-  if (/fashion|watch|wearable|sunglass|bag|wallet|strap|band|lifestyle/.test(normalized)) return "Fashion";
-  if (/beauty|skin|hair|face|cream|serum|soap|shampoo|makeup|trimmer|groom|personal care/.test(normalized)) return "Beauty";
   if (/sport|fitness|yoga|gym|cycle|ball|cricket|football|badminton|exercise|active/.test(normalized)) return "Sports";
-  if (/grocery|food|tea|coffee|snack|cereal|honey|oil|masala|rice|sugar|daily essential/.test(normalized)) return "Groceries";
   if (/home|kitchen|cook|mixer|grinder|bottle|container|pan|stove|lamp|fan|heater|furniture|bath/.test(normalized)) return "Home & Kitchen";
   if (/cable|charger|adapter|case|cover|mouse|keyboard|stand|holder|hub|sleeve|screen|pendrive|hard disk|ssd|earphone|earbuds|headphone|speaker|soundbar|hdmi|accessor/.test(normalized)) return "Accessories";
 
   const map = {
-    Electronics: "Electronics", Fashion: "Fashion", Beauty: "Beauty",
+    Electronics: "Electronics",
     Books: "Books", Sports: "Sports", Accessories: "Accessories",
-    Groceries: "Groceries", ComputersAccessories: "Accessories",
+    ComputersAccessories: "Accessories",
     "Computers&Accessories": "Accessories", HomeKitchen: "Home & Kitchen",
     "Home&Kitchen": "Home & Kitchen", OfficeProducts: "Books",
     MusicalInstruments: "Accessories", HomeImprovement: "Home & Kitchen",

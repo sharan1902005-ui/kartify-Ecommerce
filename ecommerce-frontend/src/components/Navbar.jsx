@@ -3,8 +3,8 @@ import { ShoppingCart, Heart, User, Search, Menu, X, ChevronDown, Zap } from "lu
 import { motion, AnimatePresence } from "framer-motion";
 
 const CATEGORIES = [
-  "All Products", "Electronics", "Fashion", "Home & Kitchen",
-  "Beauty", "Books", "Sports", "Accessories", "Groceries",
+  "All Products", "Electronics", "Home & Kitchen",
+  "Books", "Sports", "Accessories",
 ];
 
 export default function Navbar({ cartCount = 0, onSearch, onCategorySelect, selectedCategory }) {

@@ -1,24 +1,21 @@
 import { motion } from "framer-motion";
 import {
-  LayoutGrid, Cpu, Shirt, Home, Sparkles,
-  BookOpen, Dumbbell, Package, ShoppingBasket,
+  LayoutGrid, Cpu, Home,
+  BookOpen, Dumbbell, Package,
 } from "lucide-react";
 
 const CATEGORY_ICONS = {
-  "All Products":    LayoutGrid,
-  "Electronics":     Cpu,
-  "Fashion":         Shirt,
-  "Home & Kitchen":  Home,
-  "Beauty":          Sparkles,
-  "Books":           BookOpen,
-  "Sports":          Dumbbell,
-  "Accessories":     Package,
-  "Groceries":       ShoppingBasket,
+  "All Products":   LayoutGrid,
+  "Electronics":    Cpu,
+  "Home & Kitchen": Home,
+  "Books":          BookOpen,
+  "Sports":         Dumbbell,
+  "Accessories":    Package,
 };
 
 const ALL_CATEGORIES = [
-  "All Products", "Electronics", "Fashion", "Home & Kitchen",
-  "Beauty", "Books", "Sports", "Accessories", "Groceries",
+  "All Products", "Electronics", "Home & Kitchen",
+  "Books", "Sports", "Accessories",
 ];
 
 export default function CategorySidebar({ selectedCategory, onSelectCategory, productCounts = {} }) {
