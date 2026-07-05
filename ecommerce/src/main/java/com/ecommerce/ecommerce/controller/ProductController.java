@@ -15,7 +15,8 @@ import com.ecommerce.ecommerce.repository.ProductRepository;
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:8081",
-    "http://192.168.0.103:8081"
+    "http://192.168.0.103:8081",
+    "https://kartify-ecommerce.vercel.app"
 })
 public class ProductController {
 
