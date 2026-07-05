@@ -9,6 +9,7 @@ import ProductCard from "../components/ProductCard";
 import { ProductSkeletonGrid } from "../components/ProductSkeleton";
 import Pagination from "../components/Pagination";
 import { EmptySearch } from "../components/EmptyState";
+import { toast } from "../components/Toast";
 
 const PRODUCTS_PER_PAGE = 12;
 
@@ -82,8 +83,10 @@ export default function Products() {
         quantity: 1,
       });
       setCartCount((c) => c + 1);
-      window.location.href = "/cart";
+      toast.cart(`"${product.name.slice(0, 30)}" added to cart`);
+      setTimeout(() => { window.location.href = "/cart"; }, 900);
     } catch (error) {
+      toast.error("Failed to add to cart");
       console.log(error);
     }
   };

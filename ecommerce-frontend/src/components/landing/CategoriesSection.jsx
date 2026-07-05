@@ -1,50 +1,69 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Cpu, Shirt, Home, Sparkles, BookOpen, Dumbbell, Watch } from "lucide-react";
+import { Cpu, Home, BookOpen, Dumbbell, Watch, Sparkles } from "lucide-react";
 
 const categories = [
-  { icon: Cpu, label: "Electronics", color: "#0F766E", bg: "from-teal-500 to-cyan-400" },
-  { icon: Shirt, label: "Fashion", color: "#7C3AED", bg: "from-violet-500 to-purple-400" },
-  { icon: Home, label: "Home & Kitchen", color: "#D97706", bg: "from-amber-500 to-yellow-400" },
-  { icon: Sparkles, label: "Beauty", color: "#DB2777", bg: "from-pink-500 to-rose-400" },
-  { icon: BookOpen, label: "Books", color: "#2563EB", bg: "from-blue-500 to-indigo-400" },
-  { icon: Dumbbell, label: "Sports", color: "#16A34A", bg: "from-green-500 to-emerald-400" },
-  { icon: Watch, label: "Accessories", color: "#9333EA", bg: "from-purple-500 to-fuchsia-400" },
+  { icon: Cpu, label: "Electronics", sub: "Phones, Laptops & more", from: "#0F766E", to: "#14B8A6", shadow: "rgba(15,118,110,0.4)" },
+  { icon: Home, label: "Home & Kitchen", sub: "Appliances & Decor", from: "#F59E0B", to: "#F97316", shadow: "rgba(245,158,11,0.4)" },
+  { icon: BookOpen, label: "Books", sub: "Fiction, Non-fiction & more", from: "#6366F1", to: "#8B5CF6", shadow: "rgba(99,102,241,0.4)" },
+  { icon: Dumbbell, label: "Sports", sub: "Fitness & Outdoor", from: "#10B981", to: "#059669", shadow: "rgba(16,185,129,0.4)" },
+  { icon: Watch, label: "Accessories", sub: "Bags, Watches & more", from: "#8B5CF6", to: "#EC4899", shadow: "rgba(139,92,246,0.4)" },
+  { icon: Sparkles, label: "Beauty", sub: "Skincare & Wellness", from: "#EC4899", to: "#F43F5E", shadow: "rgba(244,63,94,0.4)" },
 ];
 
 export default function CategoriesSection() {
   const navigate = useNavigate();
 
   return (
-    <section className="py-24 bg-slate-50">
-      <div className="max-w-6xl mx-auto px-6">
+    <section id="categories" className="py-28 bg-slate-50">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }} transition={{ duration: 0.6 }}
-          className="text-center mb-14"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
         >
-          <p className="text-sm font-semibold uppercase tracking-widest text-teal-600 mb-2">Categories</p>
-          <h2 className="text-3xl md:text-4xl font-black text-slate-900">Shop by category</h2>
+          <p className="text-sm font-bold uppercase tracking-widest text-teal-600 mb-3">Categories</p>
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">Shop by category</h2>
+          <p className="text-slate-500 max-w-md mx-auto">Everything you need, organized beautifully.</p>
         </motion.div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-          {categories.map(({ icon: Icon, label, bg }, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
+          {categories.map(({ icon: Icon, label, sub, from, to, shadow }, i) => (
             <motion.div
               key={label}
-              initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.07 }}
-              whileHover={{ y: -8, scale: 1.03 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.07 }}
+              whileHover={{ y: -12, boxShadow: `0 28px 64px ${shadow}` }}
               onClick={() => navigate("/products")}
-              className="relative rounded-2xl overflow-hidden cursor-pointer group"
-              style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}
+              className="group cursor-pointer rounded-3xl overflow-hidden"
+              style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}
             >
-              <div className={`bg-gradient-to-br ${bg} p-8 flex flex-col items-center gap-3`}>
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <div
+                className="p-7 flex flex-col items-center gap-4 relative overflow-hidden"
+                style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
+              >
+                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300" />
+                {/* Shine effect */}
+                <div
+                  className="absolute top-0 left-0 w-full h-1/2 opacity-20"
+                  style={{ background: "linear-gradient(180deg, white, transparent)" }}
+                />
+                <motion.div
+                  whileHover={{ rotate: 15, scale: 1.15 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                  className="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-sm flex items-center justify-center relative z-10"
+                >
                   <Icon size={26} color="white" strokeWidth={1.5} />
+                </motion.div>
+                <div className="text-center relative z-10">
+                  <div className="text-white font-bold text-sm">{label}</div>
+                  <div className="text-white/70 text-[11px] mt-0.5 hidden md:block">{sub}</div>
                 </div>
-                <span className="text-white font-bold text-sm text-center">{label}</span>
               </div>
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl" />
             </motion.div>
           ))}
         </div>

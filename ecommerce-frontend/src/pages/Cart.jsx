@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, Tag, Truck, Shield, Zap } from "lucide-react";
 import api from "../services/api";
 import { EmptyCart } from "../components/EmptyState";
-import { Toast } from "../components/Toast";
+import { toast } from "../components/Toast";
 
 function formatPrice(price) {
   return new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(Number(price) || 0);
@@ -32,7 +32,6 @@ export default function Cart() {
   const [coupon, setCoupon]       = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
-  const [toast, setToast] = useState(null);
 
   // ── Existing API call — untouched ──────────────────────────────────────────
   useEffect(() => {
@@ -138,13 +137,15 @@ export default function Cart() {
       console.log("Remove error:", e.message);
     }
     setCartItems((prev) => prev.filter((item) => item.id !== id));
+    toast.remove("Item removed from cart");
   };
 
   const applyCoupon = () => {
     if (coupon.trim().toUpperCase() === "KARTIFY10") {
       setCouponApplied(true);
+      toast.success("Coupon KARTIFY10 applied! 10% off");
     } else {
-      setToast({ message: "Invalid coupon code", type: "error" });
+      toast.error("Invalid coupon code");
     }
   };
 
@@ -156,7 +157,6 @@ export default function Cart() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-4">

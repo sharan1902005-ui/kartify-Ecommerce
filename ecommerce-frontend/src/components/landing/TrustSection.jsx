@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { Zap, ShieldCheck, Truck, Headphones } from "lucide-react";
+import { Package, Users, Star, Truck, ShieldCheck } from "lucide-react";
 
 function Counter({ target, suffix = "" }) {
   const [count, setCount] = useState(0);
@@ -10,60 +10,46 @@ function Counter({ target, suffix = "" }) {
   useEffect(() => {
     if (!inView) return;
     let start = 0;
-    const step = Math.ceil(target / 60);
+    const step = Math.ceil(target / 50);
     const timer = setInterval(() => {
       start += step;
       if (start >= target) { setCount(target); clearInterval(timer); }
       else setCount(start);
-    }, 20);
+    }, 25);
     return () => clearInterval(timer);
   }, [inView, target]);
 
-  return <span ref={ref}>{count}{suffix}</span>;
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 }
 
 const stats = [
-  { value: 270, suffix: "+", label: "Products", icon: null },
-  { icon: Zap, label: "Fast Checkout", badge: "Instant" },
-  { icon: ShieldCheck, label: "Secure Payments", badge: "256-bit SSL" },
-  { icon: Truck, label: "Free Delivery", badge: "On orders ₹499+" },
-  { icon: Headphones, label: "24/7 Support", badge: "Always on" },
+  { icon: Package, value: 270, suffix: "+", label: "Products", color: "#0F766E" },
+  { icon: Users, value: 10000, suffix: "+", label: "Happy Customers", color: "#6366F1" },
+  { icon: Star, value: 4.9, suffix: "★", label: "Avg Rating", color: "#F59E0B", isFloat: true },
+  { icon: Truck, value: 99, suffix: "%", label: "On-time Delivery", color: "#10B981" },
+  { icon: ShieldCheck, value: 100, suffix: "%", label: "Secure Payments", color: "#3B82F6" },
 ];
 
 export default function TrustSection() {
   return (
-    <section className="py-20 bg-white">
-      <div className="max-w-6xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }} transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <p className="text-sm font-semibold uppercase tracking-widest text-teal-600 mb-2">Why Kartify</p>
-          <h2 className="text-3xl md:text-4xl font-black text-slate-900">Built for trust, designed for speed</h2>
-        </motion.div>
-
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {stats.map(({ value, suffix, label, icon: Icon, badge }, i) => (
+    <section className="py-20 bg-white border-y border-slate-100">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+          {stats.map(({ icon: Icon, value, suffix, label, color, isFloat }, i) => (
             <motion.div
               key={label}
-              initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="rounded-2xl p-6 text-center flex flex-col items-center gap-2"
-              style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(20,184,166,0.15)", boxShadow: "0 4px 24px rgba(15,118,110,0.07)" }}
+              className="flex flex-col items-center text-center gap-3 p-6 rounded-2xl"
+              style={{ background: `${color}08`, border: `1px solid ${color}18` }}
             >
-              {Icon ? (
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-1"
-                  style={{ background: "linear-gradient(135deg, rgba(15,118,110,0.1), rgba(16,185,129,0.1))" }}>
-                  <Icon size={22} color="#0F766E" strokeWidth={1.5} />
-                </div>
-              ) : (
-                <div className="text-4xl font-black text-slate-900">
-                  <Counter target={value} suffix={suffix} />
-                </div>
-              )}
-              <div className="text-sm font-semibold text-slate-700">{label}</div>
-              {badge && <div className="text-xs text-teal-600 font-medium">{badge}</div>}
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: `${color}15` }}>
+                <Icon size={22} color={color} strokeWidth={1.5} />
+              </div>
+              <div className="text-3xl font-black text-slate-900">
+                {isFloat ? value + suffix : <Counter target={value} suffix={suffix} />}
+              </div>
+              <div className="text-sm font-semibold text-slate-600">{label}</div>
             </motion.div>
           ))}
         </div>

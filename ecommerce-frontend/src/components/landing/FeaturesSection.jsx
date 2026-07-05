@@ -1,43 +1,49 @@
 import { motion } from "framer-motion";
-import { Search, Truck, ShieldCheck, Heart, MapPin, Star } from "lucide-react";
+import { Search, Truck, ShieldCheck, Heart, MapPin, Star, Zap, Headphones } from "lucide-react";
 
 const features = [
-  { icon: Search, title: "Smart Search", desc: "Find exactly what you need with intelligent filters and instant results." },
-  { icon: Truck, title: "Fast Delivery", desc: "Get your orders delivered to your doorstep in record time." },
-  { icon: ShieldCheck, title: "Secure Payments", desc: "Every transaction is protected with bank-grade encryption." },
-  { icon: Heart, title: "Wishlist", desc: "Save your favourite products and come back to them anytime." },
-  { icon: MapPin, title: "Order Tracking", desc: "Real-time updates so you always know where your order is." },
-  { icon: Star, title: "Product Reviews", desc: "Honest reviews from verified buyers to help you decide." },
+  { icon: Search, title: "Smart Search", desc: "Find exactly what you need with intelligent filters and instant results.", span: "col-span-1", color: "#0F766E" },
+  { icon: Truck, title: "Fast Delivery", desc: "Get your orders delivered to your doorstep in record time. Free on orders ₹499+.", span: "col-span-1", color: "#6366F1" },
+  { icon: ShieldCheck, title: "Secure Payments", desc: "Every transaction is protected with bank-grade 256-bit SSL encryption.", span: "col-span-1", color: "#10B981" },
+  { icon: Heart, title: "Wishlist", desc: "Save your favourite products and come back to them anytime.", span: "col-span-1", color: "#EF4444" },
+  { icon: MapPin, title: "Order Tracking", desc: "Real-time updates so you always know exactly where your order is.", span: "col-span-1", color: "#F59E0B" },
+  { icon: Star, title: "Verified Reviews", desc: "Honest reviews from verified buyers only — no fake ratings.", span: "col-span-1", color: "#8B5CF6" },
+  { icon: Zap, title: "Instant Checkout", desc: "One-click checkout with saved addresses and payment methods.", span: "col-span-1", color: "#14B8A6" },
+  { icon: Headphones, title: "24/7 Support", desc: "Our support team is always here to help you with any issue.", span: "col-span-1", color: "#EC4899" },
 ];
 
 export default function FeaturesSection() {
   return (
-    <section id="features" className="py-24 bg-gradient-to-b from-white to-slate-50">
-      <div className="max-w-6xl mx-auto px-6">
+    <section id="features" className="py-28 bg-white">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ duration: 0.6 }}
-          className="text-center mb-14"
+          className="text-center mb-16"
         >
-          <p className="text-sm font-semibold uppercase tracking-widest text-teal-600 mb-2">Features</p>
-          <h2 className="text-3xl md:text-4xl font-black text-slate-900">Everything you need to shop smarter</h2>
+          <p className="text-sm font-bold uppercase tracking-widest text-teal-600 mb-3">Features</p>
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">Everything you need</h2>
+          <p className="text-slate-500 max-w-md mx-auto text-lg">Built for speed, simplicity, and a shopping experience you'll love.</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map(({ icon: Icon, title, desc }, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          {features.map(({ icon: Icon, title, desc, color }, i) => (
             <motion.div
               key={title}
               initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.08 }}
-              whileHover={{ y: -6, boxShadow: "0 20px 60px rgba(15,118,110,0.15)" }}
-              className="rounded-2xl p-7 cursor-default transition-shadow"
-              style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(12px)", border: "1px solid rgba(20,184,166,0.12)", boxShadow: "0 4px 24px rgba(15,118,110,0.06)" }}
+              viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.07 }}
+              whileHover={{ y: -8, boxShadow: `0 24px 60px ${color}22` }}
+              className="p-6 rounded-3xl cursor-default transition-shadow"
+              style={{ background: `${color}06`, border: `1px solid ${color}18`, boxShadow: `0 4px 20px ${color}0a` }}
             >
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
-                style={{ background: "linear-gradient(135deg, #0F766E, #14B8A6)" }}>
-                <Icon size={22} color="white" strokeWidth={1.8} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">{title}</h3>
+              <motion.div
+                whileHover={{ rotate: 8, scale: 1.1 }}
+                className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5"
+                style={{ background: `${color}15` }}
+              >
+                <Icon size={22} color={color} strokeWidth={1.8} />
+              </motion.div>
+              <h3 className="text-base font-bold text-slate-900 mb-2">{title}</h3>
               <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
             </motion.div>
           ))}

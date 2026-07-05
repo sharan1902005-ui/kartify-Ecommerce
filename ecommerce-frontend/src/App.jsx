@@ -6,10 +6,12 @@ import Products from "./pages/Products";
 import Cart from "./pages/Cart";
 import OrderSuccess from "./pages/OrderSuccess";
 import Orders from "./pages/Orders";
+import { ToastContainer } from "./components/Toast";
 
 function App() {
   return (
     <BrowserRouter>
+      <ToastContainer />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
