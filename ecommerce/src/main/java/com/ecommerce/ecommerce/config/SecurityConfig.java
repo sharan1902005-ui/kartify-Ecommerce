@@ -42,9 +42,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/**").permitAll()
                         .requestMatchers("/api/address/**").permitAll()
 
-                        // RAZORPAY
-                        .requestMatchers("/api/payment/**").permitAll()
-
                         .requestMatchers("/api/reviews/**").permitAll()
                         .requestMatchers("/api/wishlist/**").permitAll()
                         .requestMatchers("/api/coupons/**").permitAll()
