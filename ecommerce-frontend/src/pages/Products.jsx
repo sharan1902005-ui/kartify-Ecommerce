@@ -73,11 +73,11 @@ export default function Products() {
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
-  // ── Existing addToCart — untouched ─────────────────────────────────────────
   const addToCart = async (product) => {
+    const userId = localStorage.getItem("userId") || 1;
     try {
       await api.post("/cart/add", {
-        userId: 1,
+        userId,
         productId: product.id,
         quantity: 1,
       });
@@ -85,7 +85,6 @@ export default function Products() {
       window.location.href = "/cart";
     } catch (error) {
       console.log(error);
-      alert("Add to cart failed");
     }
   };
 

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, Tag, Truck, Shield, Zap } from "lucide-react";
 import api from "../services/api";
 import { EmptyCart } from "../components/EmptyState";
+import { Toast } from "../components/Toast";
 
 function formatPrice(price) {
   return new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(Number(price) || 0);
@@ -23,10 +25,14 @@ function CartItemSkeleton() {
 }
 
 export default function Cart() {
+  const navigate = useNavigate();
+  const userId = localStorage.getItem("userId") || 1;
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [coupon, setCoupon]       = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [toast, setToast] = useState(null);
 
   // ── Existing API call — untouched ──────────────────────────────────────────
   useEffect(() => {
@@ -38,7 +44,7 @@ export default function Cart() {
       setLoading(true);
 
       const [cartRes, productsRes] = await Promise.all([
-        api.get("/cart/user/1"),
+        api.get(`/cart/user/${userId}`),
         api.get("/products"),
       ]);
 
@@ -69,9 +75,50 @@ export default function Cart() {
     }
   };
 
-  // ── Existing checkout — untouched ──────────────────────────────────────────
   const checkout = async () => {
-    alert("Demo checkout successful!");
+    if (cartItems.length === 0) return;
+    setCheckingOut(true);
+
+    const orderPayload = {
+      userId: 1,
+      items: cartItems.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      total: grandTotal,
+    };
+
+    let orderId;
+    try {
+      const res = await api.post("/orders", orderPayload);
+      orderId = res.data?.id ?? res.data?.orderId;
+    } catch (error) {
+      console.log("Order API unavailable, simulating order:", error.message);
+      orderId = `ORD-${Date.now().toString().slice(-8)}`;
+    }
+
+    const order = { id: orderId, date: new Date().toISOString(), total: grandTotal };
+
+    // Save to local order history
+    const localOrders = JSON.parse(localStorage.getItem("kartify_orders") || "[]");
+    localOrders.unshift({
+      ...order,
+      items: cartItems.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        imageUrl: item.imageUrl,
+      })),
+    });
+    localStorage.setItem("kartify_orders", JSON.stringify(localOrders.slice(0, 20)));
+
+    // Delete all cart items from backend
+    await Promise.allSettled(cartItems.map((item) => api.delete(`/cart/remove/${item.id}`)));
+
+    setCartItems([]);
+    setCheckingOut(false);
+    navigate("/order-success", { state: { order } });
   };
 
   const updateQty = (id, delta) => {
@@ -84,7 +131,12 @@ export default function Cart() {
     );
   };
 
-  const removeItem = (id) => {
+  const removeItem = async (id) => {
+    try {
+      await api.delete(`/cart/remove/${id}`);
+    } catch (e) {
+      console.log("Remove error:", e.message);
+    }
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
@@ -92,7 +144,7 @@ export default function Cart() {
     if (coupon.trim().toUpperCase() === "KARTIFY10") {
       setCouponApplied(true);
     } else {
-      alert("Invalid coupon code");
+      setToast({ message: "Invalid coupon code", type: "error" });
     }
   };
 
@@ -104,6 +156,7 @@ export default function Cart() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
+      <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-4">
@@ -295,13 +348,27 @@ export default function Cart() {
                 )}
 
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: checkingOut ? 1 : 1.02 }}
+                  whileTap={{ scale: checkingOut ? 1 : 0.98 }}
                   onClick={checkout}
-                  className="mt-5 w-full py-3.5 bg-[#0F766E] hover:bg-[#0D6B63] text-white font-black text-base rounded-xl transition-colors shadow-lg shadow-teal-200 flex items-center justify-center gap-2"
+                  disabled={checkingOut}
+                  className="mt-5 w-full py-3.5 bg-[#0F766E] hover:bg-[#0D6B63] text-white font-black text-base rounded-xl transition-colors shadow-lg shadow-teal-200/60 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <ShoppingBag size={18} />
-                  Place Order · ₹{formatPrice(grandTotal)}
+                  {checkingOut ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
+                        className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full"
+                      />
+                      Placing Order…
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag size={18} />
+                      Place Order · ₹{formatPrice(grandTotal)}
+                    </>
+                  )}
                 </motion.button>
 
                 <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-slate-400">

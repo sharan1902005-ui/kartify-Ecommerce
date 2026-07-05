@@ -2,23 +2,40 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Zap, Mail, Lock, ArrowRight } from "lucide-react";
 import api from "../services/api";
+import { Toast } from "../components/Toast";
+
+function decodeUserIdFromToken(token) {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.userId ?? payload.id ?? payload.sub ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export default function Login() {
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw]     = useState(false);
   const [loading, setLoading]   = useState(false);
+  const [toast, setToast]       = useState(null);
 
-  // ── Existing API call — untouched ──────────────────────────────────────────
   const handleLogin = async () => {
     try {
       setLoading(true);
       const response = await api.post("/auth/login", { email, password });
       localStorage.setItem("token", response.data.token);
-      alert("Login Successful!");
-      window.location.href = "/products";
+
+      const userId =
+        response.data.userId ??
+        response.data.id ??
+        decodeUserIdFromToken(response.data.token);
+      if (userId != null) localStorage.setItem("userId", String(userId));
+
+      setToast({ message: "Login successful!", type: "info" });
+      setTimeout(() => { window.location.href = "/products"; }, 600);
     } catch (error) {
-      alert("Login Failed");
+      setToast({ message: "Login failed. Check your credentials.", type: "error" });
       console.log(error);
     } finally {
       setLoading(false);
@@ -29,7 +46,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F0FDFA] via-[#F8FAFC] to-[#EFF6FF] flex items-center justify-center px-4">
-      {/* Background blobs */}
+      <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-teal-100/50 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-cyan-100/50 blur-3xl" />
